@@ -1,11 +1,10 @@
-import { HeroHighlight } from "@/components/ui/hero-highlight";
-import { HeroHighlightDemo } from "@/pages/Hero";
-import Image from "next/image";
+import Page from "./dashboard/page";
+
 
 export default function Home() {
   return (
     <div>
-      <HeroHighlightDemo/>
+      <Page/>
     </div>
   );
 }
