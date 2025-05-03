@@ -69,3 +69,58 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
+
+// Get dashboard tasks
+exports.getDashboardData = async (req, res) => {
+    try {
+      const userId = req.user.id;
+  
+      const assignedTasks = await Task.find({ assignedTo: userId }).sort({ dueDate: 1 });
+      const createdTasks = await Task.find({ createdBy: userId }).sort({ createdAt: -1 });
+      const overdueTasks = await Task.find({
+        assignedTo: userId,
+        dueDate: { $lt: new Date() },
+        status: { $ne: 'completed' },
+      });
+  
+      res.json({
+        assignedTasks,
+        createdTasks,
+        overdueTasks,
+      });
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  };
+
+  // Filter and search tasks
+exports.searchAndFilterTasks = async (req, res) => {
+    try {
+      const { status, priority, dueBefore, search } = req.query;
+      const userId = req.user.id;
+  
+      const filter = {
+        $or: [
+          { createdBy: userId },
+          { assignedTo: userId }
+        ]
+      };
+  
+      if (status) filter.status = status;
+      if (priority) filter.priority = priority;
+      if (dueBefore) filter.dueDate = { $lt: new Date(dueBefore) };
+  
+      if (search) {
+        filter.$or.push(
+          { title: new RegExp(search, 'i') },
+          { description: new RegExp(search, 'i') }
+        );
+      }
+  
+      const tasks = await Task.find(filter);
+      res.json(tasks);
+    } catch (err) {
+      res.status(500).json({ msg: err.message });
+    }
+  };
+  
