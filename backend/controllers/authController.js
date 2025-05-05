@@ -4,21 +4,38 @@ const User = require('../models/User');
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ msg: 'User already exists' });
+    const { firstname, lastname, email, password } = req.body;
 
+    // Check for existing email
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ msg: 'Email is already registered' });
+
+    // Generate base username from last + first name
+    let baseUsername = (lastname.slice(0, 3) + firstname.slice(0, 2)).toLowerCase().replace(/\s+/g, '');
+
+    // Ensure username is unique (add numbers if necessary)
+    let username = baseUsername;
+    let counter = 1;
+    while (await User.findOne({ username })) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
 
-    const user = new User({ name, email, password: hash });
+    // Create and save user
+    const user = new User({ firstname, lastname, username, email, password: hash });
     await user.save();
 
     res.status(201).json({ msg: 'User registered successfully' });
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    console.error(err);
+    res.status(500).json({ msg: 'Server error: ' + err.message });
   }
 };
+
 
 exports.login = async (req, res) => {
   try {
