@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LoginForm } from "../../components/login-form";
-import SignupFormDemo from "../../components/signup-form-demo";
+import SignupFormDemo from "../../components/signup-form";
 
 type AuthPageProps = {
   onClose: () => void;
