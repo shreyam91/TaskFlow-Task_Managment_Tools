@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +19,7 @@ export function LoginForm({
   onToggleForm,
   ...props
 }: React.ComponentProps<"div"> & { onToggleForm?: () => void }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -45,10 +47,14 @@ export function LoginForm({
         return;
       }
 
+      // Save token if needed
       localStorage.setItem("token", data.token);
       console.log("Login successful:", data.user);
-      // Redirect or close modal if needed
+
+      // ✅ Redirect to dashboard
+      router.push("/dashboard");
     } catch (err) {
+      console.error(err);
       setError("Something went wrong");
     }
   };
