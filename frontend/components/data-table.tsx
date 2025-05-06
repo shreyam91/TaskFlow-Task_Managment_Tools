@@ -122,7 +122,20 @@ function DragHandle({ id }: { id: number }) {
     id,
   })
 
+  // const priorityOrder = {
+  //   Low: 1,
+  //   Mid: 2,
+  //   High: 3,
+  // }
+  
+  // const statusOrder = {
+  //   "Not Started": 1,
+  //   "In Progress": 2,
+  //   Done: 3,
+  // }
+
   return (
+    
     <Button
       {...attributes}
       {...listeners}
@@ -134,6 +147,18 @@ function DragHandle({ id }: { id: number }) {
       <span className="sr-only">Drag to reorder</span>
     </Button>
   )
+}
+
+const priorityOrder = {
+  Low: 1,
+  Mid: 2,
+  High: 3,
+}
+
+const statusOrder = {
+  "Not Started": 1,
+  "In Progress": 2,
+  Done: 3,
 }
 
 const columns: ColumnDef<z.infer<typeof schema>>[] = [
@@ -176,9 +201,16 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     },
     enableHiding: false,
   },
+  
   {
     accessorKey: "priority",
     header: "Priority",
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = priorityOrder[rowA.getValue(columnId) as keyof typeof priorityOrder] ?? 0
+      const b = priorityOrder[rowB.getValue(columnId) as keyof typeof priorityOrder] ?? 0
+      return a - b
+    },
+    
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -190,6 +222,12 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    sortingFn: (rowA, rowB, columnId) => {
+      const a = statusOrder[rowA.getValue(columnId) as keyof typeof statusOrder] ?? 0
+      const b = statusOrder[rowB.getValue(columnId) as keyof typeof statusOrder] ?? 0
+      return a - b
+    },
+    
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {row.original.status === "Done" ? (
@@ -469,10 +507,39 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
+
+          
+          
+          <Select
+  onValueChange={(value) => {
+    switch (value) {
+      case "priority-low": // Low → High
+        setSorting([{ id: "priority", desc: false }])
+        break
+      case "priority-high": // High → Low
+        setSorting([{ id: "priority", desc: true }])
+        break
+      case "due-date":
+        setSorting([{ id: "target", desc: false }])
+        break
+      case "status":
+        setSorting([{ id: "status", desc: false }])
+        break
+    }
+  }}
+>
+  <SelectTrigger className="w-[180px]" size="sm">
+    <SelectValue placeholder="Sort by" />
+  </SelectTrigger>
+  <SelectContent align="end">
+    <SelectItem value="priority-low">Priority: Low to High</SelectItem>
+    <SelectItem value="priority-high">Priority: High to Low</SelectItem>
+    <SelectItem value="due-date">Due Date</SelectItem>
+    <SelectItem value="status">Status</SelectItem>
+  </SelectContent>
+</Select>
+
+
         </div>
       </div>
       <TabsContent

@@ -10,17 +10,23 @@ app.use(cors());
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
-app.use(cors());
+
+  app.use(cors({
+    origin: "http://localhost:3000", // or '*' to allow all origins (less secure)
+    credentials: true,
+  }))
+  
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
-app.use('/api/user', require('./routes/userRoutes')); // Add this line
+app.use('/api/user', require('./routes/userRoutes')); 
+app.use('/api/projects',require('./routes/projectRoutes'));
 
 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 

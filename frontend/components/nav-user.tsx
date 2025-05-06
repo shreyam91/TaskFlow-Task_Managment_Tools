@@ -25,6 +25,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { CardDemo } from "./NotificationCard";
+import { CardWithForm } from "./cardWithForm";
 
 export function NavUser() {
   const [user, setUser] = useState({
@@ -37,6 +39,12 @@ export function NavUser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isMobile } = useSidebar();
+
+  const [showCard, setShowCard] = useState(false);
+
+  const handleToggleCard = () => {
+    setShowCard(prev => !prev);
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -78,7 +86,7 @@ export function NavUser() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login"; // or use router.push('/login') if using next/router
+    window.location.href = "/"; // or use router.push('/login') if using next/router
   };
 
   const getInitials = (firstname: string, lastname: string) => {
@@ -179,9 +187,22 @@ export function NavUser() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+                Notifications 
+                </DropdownMenuItem>
+                {showCard && (
+        // <div style={{
+        //   border: '1px solid #ccc',
+        //   padding: '1rem',
+        //   marginTop: '0.5rem',
+        //   borderRadius: '8px',
+        //   backgroundColor: '#fff',
+        //   boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        // }}>
+          <CardDemo/>
+        // </div>
+      )}
+      
+                </DropdownMenuGroup>  
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />

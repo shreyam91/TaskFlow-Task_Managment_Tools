@@ -12,7 +12,7 @@
     "id": 2,
     "task": "Table of contents",
     "priority": "High",
-    "status": "Done",
+    "status": "Not Started",
     "target": "01 Feb",
     "limit": "24",
     "reviewer": "Eddie Lake"
