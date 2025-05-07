@@ -16,10 +16,12 @@ import { Button } from "@/components/ui/button"
 
 import { CardWithForm } from "@/components/cardWithForm"
 import { useState } from "react"
+import { TaskForm } from "@/components/TaskForm"
 
 
 export default function Page() {
   const [showPopup, setShowPopup] = useState(false)
+  const [showTaskPopup, setShowTaskPopup] = useState(false)
   return (
     <SidebarProvider
       style={
@@ -46,6 +48,15 @@ export default function Page() {
                 Add Project 
               </Button>
 
+              {/* Add Task Button */}
+              <Button
+                variant="outline"
+                className="w-[170px] h-[20px] text-l p-5 ml-5"
+                onClick={() => setShowTaskPopup(true)}
+              >
+                Add Task
+              </Button>
+
               {/* Popup with form */}
               {showPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30">
@@ -53,6 +64,20 @@ export default function Page() {
                     <CardWithForm />
                     <div className="mt-4 flex justify-end">
                       <Button variant="outline" onClick={() => setShowPopup(false)}>
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Task Popup */}
+              {showTaskPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30">
+                  <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
+                    <TaskForm /> {/* Replace with <TaskForm /> if using a separate form */}
+                    <div className="mt-4 flex justify-end">
+                      <Button variant="outline" onClick={() => setShowTaskPopup(false)}>
                         Close
                       </Button>
                     </div>

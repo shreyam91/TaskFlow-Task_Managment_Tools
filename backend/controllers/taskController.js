@@ -2,21 +2,30 @@ const Task = require('../models/Task');
 
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, dueDate, priority, status, assignedTo } = req.body;
+    console.log("Request body:", req.body);
+    const { title, description, dueDate, priority, status, assignedTo, project } = req.body;
 
-    const task = new Task({
-      title,
-      description,
-      dueDate,
-      priority,
-      status,
-      assignedTo,
-      createdBy: req.user.id, // comes from auth middleware
-    });
+    // Validate required fields
+    if (!title || !assignedTo || !project) {
+      return res.status(400).json({ msg: 'Title, Assigned To, and Project are required' });
+    }
+
+const task = new Task({
+  title,
+  description,
+  dueDate,
+  priority,
+  status: status || 'not-started',
+  assignedTo,
+  project,
+  createdBy: req.user.id,
+});
+
 
     await task.save();
     res.status(201).json(task);
   } catch (err) {
+    console.error('Error creating task:', err);
     res.status(500).json({ msg: err.message });
   }
 };

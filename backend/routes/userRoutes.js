@@ -41,4 +41,21 @@ router.get('/user', verifyToken, async (req, res) => {
   }
 });
 
+// Add this to your userRoutes.js
+
+router.get('/users', verifyToken, async (req, res) => {
+  try {
+    const users = await User.find({}, 'username firstname lastname _id'); // Fetch limited fields
+    const formattedUsers = users.map(user => ({
+      id: user._id,
+      name: `${user.firstname} ${user.lastname}` // or username, depending on what you prefer
+    }));
+    res.json(formattedUsers);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
 module.exports = router;

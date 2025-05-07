@@ -10,7 +10,12 @@ const {
   searchAndFilterTasks,
 } = require('../controllers/taskController');
 
-router.post('/', auth, createTask);
+// Define the POST route only once, with the logging middleware first
+router.post('/', auth, (req, res, next) => {
+  console.log("🛬 Incoming task POST request");
+  next(); // Pass control to the next middleware (createTask)
+}, createTask);
+
 router.get('/', auth, getTasks);
 router.put('/:id', auth, updateTask);
 router.delete('/:id', auth, deleteTask);
