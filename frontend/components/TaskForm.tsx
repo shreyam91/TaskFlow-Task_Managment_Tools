@@ -9,6 +9,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+
 
 export function TaskForm() {
   const [dueDate, setDueDate] = useState<Date | undefined>()
@@ -62,39 +64,51 @@ export function TaskForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+  
     const payload = {
       title,
       description,
       dueDate,
       priority,
-      status: "not-started", // optional
+      status,
       assignedTo,
       project: projectId,
     }
-
+  
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // or however you store auth
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(payload),
       })
-
+  
       if (!res.ok) throw new Error("Failed to create task")
-
+  
       const data = await res.json()
-      console.log("Task created:", data)
+      toast.success("Task created successfully!")
+  
+      // Optional: Reset form
+      setTitle("")
+      setDescription("")
+      setDueDate(undefined)
+      setPriority("")
+      setAssignedTo("")
+      setProjectId("")
+      setStatus("not-started")
     } catch (err) {
       console.error("Error creating task:", err)
+      toast.error("Failed to create task. Please try again.")
     }
   }
+  
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-xl font-semibold">Add Task</h2>
+      {/* <p className="text-gray-500 mt-0 ">Create and assigned task to your team in one click.</p> */}
 
       <div className="space-y-1">
         <Label htmlFor="title">Title</Label>
@@ -200,16 +214,26 @@ export function TaskForm() {
       className="mb-2"
     />
   </div>
-  {users
-    .filter((user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .map((user) => (
-      <SelectItem key={user.id} value={user.id}>
-        {user.name}
-      </SelectItem>
-    ))}
+
+  {users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).length === 0 ? (
+    <div className="px-3 py-2 text-sm text-muted-foreground">
+      No user found
+    </div>
+  ) : (
+    users
+      .filter((user) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .map((user) => (
+        <SelectItem key={user.id} value={user.id}>
+          {user.name}
+        </SelectItem>
+      ))
+  )}
 </SelectContent>
+
 
           </Select>
         </div>
