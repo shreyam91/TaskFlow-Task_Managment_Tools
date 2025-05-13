@@ -51,7 +51,7 @@ import {
 } from "@tanstack/react-table"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
-import { z } from "zod"
+import { useEffect, useState } from "react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
@@ -106,33 +106,27 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 
-export const schema = z.object({
-  id: z.number(),
-  task: z.string(),
-  priority: z.string(),
-  status: z.string(),
-  target: z.string(),
-  limit: z.string(),
-  reviewer: z.string(),
-})
+export interface TaskItem {
+  _id: string
+  title: string
+  description?: string
+  priority: string
+  status: string
+  dueDate: string
+  assignedTo: {
+    _id: string
+    email: string
+    name?: string
+  } | string
+  project?: string
+  createdBy: string
+}
 
 // Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
+function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({
     id,
   })
-
-  // const priorityOrder = {
-  //   Low: 1,
-  //   Mid: 2,
-  //   High: 3,
-  // }
-  
-  // const statusOrder = {
-  //   "Not Started": 1,
-  //   "In Progress": 2,
-  //   Done: 3,
-  // }
 
   return (
     
@@ -161,11 +155,11 @@ const statusOrder = {
   Done: 3,
 }
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
+const columns: ColumnDef<TaskItem>[] = [
   {
     id: "drag",
     header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
+    cell: ({ row }) => <DragHandle id={row.original._id} />,
   },
   {
     id: "select",
@@ -194,14 +188,13 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "task",
+    accessorKey: "title",
     header: "Task",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
     enableHiding: false,
   },
-  
   {
     accessorKey: "priority",
     header: "Priority",
@@ -210,7 +203,6 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       const b = priorityOrder[rowB.getValue(columnId) as keyof typeof priorityOrder] ?? 0
       return a - b
     },
-    
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -227,10 +219,9 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       const b = statusOrder[rowB.getValue(columnId) as keyof typeof statusOrder] ?? 0
       return a - b
     },
-    
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status === "Done" ? (
+        {row.original.status === "completed" ? (
           <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
         ) : (
           <IconLoader />
@@ -240,86 +231,88 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     ),
   },
   {
-    accessorKey: "target",
+    accessorKey: "dueDate",
     header: () => <div className="w-full text-right">Due Date</div>,
     cell: ({ row }) => (
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.task}`,
-            success: "Done",
-            error: "Error",
-          })
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${row.original._id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({ dueDate: e.currentTarget.dueDate.value }),
+            })
+            
+            if (!response.ok) throw new Error('Failed to update due date')
+            
+            toast.success('Due date updated successfully')
+          } catch (err) {
+            toast.error('Failed to update due date')
+          }
         }}
       >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
+        <Label htmlFor={`${row.original._id}-dueDate`} className="sr-only">
           Due Date
         </Label>
         <Input
           className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-20 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
+          defaultValue={new Date(row.original.dueDate).toLocaleDateString()}
+          id={`${row.original._id}-dueDate`}
+          name="dueDate"
         />
       </form>
     ),
   },
   {
-    accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.task}`,
-            success: "Done",
-            error: "Error",
-          })
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
-    ),
-  },
-  {
-    accessorKey: "reviewer",
-    header: "Reviewer",
+    accessorKey: "assignedTo",
+    header: "Assigned To",
     cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer"
+      const assignedTo = row.original.assignedTo;
+      const isAssigned = typeof assignedTo === 'object' && assignedTo !== null;
 
       if (isAssigned) {
-        return row.original.reviewer
+        return assignedTo.name || assignedTo.email;
       }
 
       return (
-        <>
-          <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
-          </Label>
-          <Select>
-            <SelectTrigger
-              className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-              size="sm"
-              id={`${row.original.id}-reviewer`}
-            >
-              <SelectValue placeholder="Assign reviewer" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">
-                Jamik Tashpulatov
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </>
+        <Select
+          onValueChange={async (value) => {
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks/${row.original._id}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ assignedTo: value }),
+              })
+              
+              if (!response.ok) throw new Error('Failed to assign task')
+              
+              toast.success('Task assigned successfully')
+            } catch (err) {
+              toast.error('Failed to assign task')
+            }
+          }}
+        >
+          <SelectTrigger
+            className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
+            size="sm"
+            id={`${row.original._id}-assignedTo`}
+          >
+            <SelectValue placeholder="Assign reviewer" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
+            <SelectItem value="Jamik Tashpulatov">
+              Jamik Tashpulatov
+            </SelectItem>
+          </SelectContent>
+        </Select>
       )
     },
   },
@@ -349,9 +342,9 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
 ]
 
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
+function DraggableRow({ row }: { row: Row<TaskItem> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
+    id: row.original._id,
   })
 
   return (
@@ -374,18 +367,13 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function DataTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[]
-}) {
-  const [data, setData] = React.useState(() => initialData)
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
+export function DataTable() {
+  const [data, setData] = useState<TaskItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [rowSelection, setRowSelection] = useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
@@ -399,9 +387,38 @@ export function DataTable({
   )
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
+    () => data?.map(({ _id }) => _id) || [],
     [data]
   )
+
+  // Fetch tasks from backend
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks')
+        }
+
+        const tasks = await response.json()
+        setData(tasks)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch tasks')
+        toast.error('Failed to fetch tasks')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTasks()
+  }, [])
 
   const table = useReactTable({
     data,
@@ -413,7 +430,7 @@ export function DataTable({
       columnFilters,
       pagination,
     },
-    getRowId: (row) => row.id.toString(),
+    getRowId: (row) => row?._id?.toString() ?? crypto.randomUUID(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -437,6 +454,24 @@ export function DataTable({
         return arrayMove(data, oldIndex, newIndex)
       })
     }
+  }
+
+  // Add loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <IconLoader className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  // Add error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-red-500">{error}</div>
+      </div>
+    )
   }
 
   return (
@@ -520,7 +555,7 @@ export function DataTable({
         setSorting([{ id: "priority", desc: true }])
         break
       case "due-date":
-        setSorting([{ id: "target", desc: false }])
+        setSorting([{ id: "dueDate", desc: false }])
         break
       case "status":
         setSorting([{ id: "status", desc: false }])
@@ -658,7 +693,7 @@ export function DataTable({
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">Go to next page</span>  
                 <IconChevronRight />
               </Button>
               <Button
@@ -714,22 +749,22 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+function TableCellViewer({ item }: { item: TaskItem }) {
   const isMobile = useIsMobile()
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.task}
+          {item.title}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.task}</DrawerTitle>
-          <DrawerDescription>
+          <DrawerTitle>{item.title}</DrawerTitle>
+          {/* <DrawerDescription>
             Showing total visitors for the last 6 months
-          </DrawerDescription>
+          </DrawerDescription> */}
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           {!isMobile && (
@@ -791,13 +826,14 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           )}
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.task} />
+              <Label htmlFor="header">Task Name</Label>
+              <p>{item.title}</p>
+              {/* <Input id="header" defaultValue={item.title} /> */}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="type">Type</Label>
-                <Select defaultValue={item.priority}>
+                {/* <Select defaultValue={item.priority}>
                   <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
@@ -819,7 +855,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
                     <SelectItem value="Narrative">Narrative</SelectItem>
                     <SelectItem value="Cover Page">Cover Page</SelectItem>
                   </SelectContent>
-                </Select>
+                </Select> */}
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="status">Status</Label>
@@ -837,17 +873,17 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="target">Target</Label>
-                <Input id="target" defaultValue={item.target} />
+                <Label htmlFor="target">Assigned Date</Label>
+                <Input id="target" defaultValue={item.dueDate} />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="limit">Limit</Label>
-                <Input id="limit" defaultValue={item.limit} />
+                <Label htmlFor="limit">Due Date</Label>
+                <Input id="limit" defaultValue={item.assignedTo} />
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
-              <Select defaultValue={item.reviewer}>
+              <Label htmlFor="reviewer">Assigned To </Label>
+              <Select defaultValue={item.assignedTo}>
                 <SelectTrigger id="reviewer" className="w-full">
                   <SelectValue placeholder="Select a reviewer" />
                 </SelectTrigger>
