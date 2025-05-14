@@ -824,7 +824,7 @@ function TableCellViewer({ item }: { item: TaskItem }) {
               <Separator />
             </>
           )}
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4"> 
             <div className="flex flex-col gap-3">
               <Label htmlFor="header">Task Name</Label>
               <p>{item.title}</p>
@@ -906,5 +906,6 @@ function TableCellViewer({ item }: { item: TaskItem }) {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+    
   )
 }
