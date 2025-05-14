@@ -57,7 +57,7 @@ export function NavUser() {
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/user/user`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/user`,
           {
             method: "GET",
             headers: {
