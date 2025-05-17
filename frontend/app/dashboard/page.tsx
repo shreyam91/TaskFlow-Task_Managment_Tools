@@ -16,7 +16,7 @@ import { useState } from "react";
 import { TaskForm } from "@/components/TaskForm";
 import { TeamForm } from "@/components/TeamForm";
 
-export default function Page() {
+export default function DashboardPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [showTaskPopup, setShowTaskPopup] = useState(false);
   const [showTeamPopup, setShowTeamPopup] = useState(false);
