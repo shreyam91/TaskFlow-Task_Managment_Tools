@@ -1,6 +1,8 @@
+// routes/taskRoute.js
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/authMiddleware');
+const authorizeRole = require('../middleware/authorizeRole');
 const {
   createTask,
   getTasks,
@@ -10,18 +12,20 @@ const {
   searchAndFilterTasks,
 } = require('../controllers/taskController');
 
-// Define the POST route only once, with the logging middleware first
-router.post('/', auth, (req, res, next) => {
-  console.log("🛬 Incoming task POST request");
-  next(); // Pass control to the next middleware (createTask)
-}, createTask);
+// Create a task (Admin & Manager)
+router.post('/', auth, authorizeRole('admin', 'manager'), createTask);
 
-router.get('/', auth, getTasks);
-router.put('/:id', auth, updateTask);
-router.delete('/:id', auth, deleteTask);
+// View tasks (All roles)
+router.get('/', auth, authorizeRole('admin', 'manager', 'employee'), getTasks);
 
-// New routes
-router.get('/dashboard/overview', auth, getDashboardData);
-router.get('/search/filter', auth, searchAndFilterTasks);
+// Update a task (Employee only — e.g. for submission)
+router.put('/:id', auth, authorizeRole('employee'), updateTask);
+
+// Delete a task (Admin & Manager only)
+router.delete('/:id', auth, authorizeRole('admin', 'manager'), deleteTask);
+
+// Dashboard and Search — Manager and Admin
+router.get('/dashboard/overview', auth, authorizeRole('admin', 'manager'), getDashboardData);
+router.get('/search/filter', auth, authorizeRole('admin', 'manager'), searchAndFilterTasks);
 
 module.exports = router;

@@ -112,6 +112,7 @@ export function TeamForm() {
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
           required
+          className="mt-2"
         />
       </div>
 
@@ -121,10 +122,11 @@ export function TeamForm() {
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="mt-2"
         />
       </div>
 
-      <div>
+      {/* <div>
         <Label htmlFor="project">Project</Label>
         <Select
           id="project"
@@ -132,10 +134,25 @@ export function TeamForm() {
           onChange={setSelectedProject}
           options={projects}
           placeholder="Select a project"
+          className="mt-2"
         />
-      </div>
+      </div> */}
 
       <div>
+  <Label htmlFor="project">Project</Label>
+  <Select
+    id="project"
+    value={selectedProject}
+    onChange={setSelectedProject}
+    options={projects}
+    placeholder="Search and select a project"
+    isSearchable
+    className="mt-2"
+  />
+</div>
+
+
+      {/* <div>
         <Label htmlFor="users">Users</Label>
         <Select
           id="users"
@@ -144,8 +161,24 @@ export function TeamForm() {
           options={users}
           isMulti
           placeholder="Select users"
+          className="mt-2"
         />
-      </div>
+      </div> */}
+
+      <div>
+  <Label htmlFor="users">Users</Label>
+  <Select
+    id="users"
+    value={selectedUsers}
+    onChange={(newValue) => setSelectedUsers(newValue as SelectOption[])}
+    options={users}
+    isMulti
+    isSearchable
+    placeholder="Search and select users"
+    className="mt-2"
+  />
+</div>
+
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Submitting..." : "Submit"}

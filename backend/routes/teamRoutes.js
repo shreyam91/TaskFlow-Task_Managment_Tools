@@ -1,4 +1,4 @@
-// teamRoutes.js
+// routes/teamRoutes.js
 const express = require('express');
 const {
   createTeam,
@@ -7,12 +7,21 @@ const {
   updateTeam,
 } = require('../controllers/teamController');
 
+const auth = require('../middleware/authMiddleware');
+const authorizeRole = require('../middleware/authorizeRole');
 const router = express.Router();
 
-router.post('/', createTeam);
-router.get('/', getAllTeams);
-router.put('/:id', updateTeam);
-router.patch('/:id', updateTeam);
-router.delete('/:id', deleteTeam);
+// Create team (Admin & Manager)
+router.post('/', auth, authorizeRole('admin', 'manager'), createTeam);
+
+// Get teams (All roles)
+router.get('/', auth, authorizeRole('admin', 'manager', 'employee'), getAllTeams);
+
+// Update team (Admin & Manager)
+router.put('/:id', auth, authorizeRole('admin', 'manager'), updateTeam);
+router.patch('/:id', auth, authorizeRole('admin', 'manager'), updateTeam);
+
+// Delete team (Admin only)
+router.delete('/:id', auth, authorizeRole('admin'), deleteTeam);
 
 module.exports = router;

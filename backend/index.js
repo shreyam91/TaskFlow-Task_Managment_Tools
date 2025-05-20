@@ -1,33 +1,44 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
 const mongoose = require('mongoose');
 
+// Route Imports
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+
 const app = express();
-app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// ✅ MongoDB Connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-  app.use(cors({
-    origin: "http://localhost:3000", // or '*' to allow all origins (less secure)
-    credentials: true,
-  }))
-  
+// ✅ Middleware
+app.use(cors({
+  origin: "http://localhost:3000", // You can set this to your frontend URL
+  credentials: true,
+}));
 app.use(express.json());
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/tasks', require('./routes/taskRoutes'));
+// ✅ API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);           // /api/users/user, /api/users/users
+app.use('/api/tasks', taskRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/teams', teamRoutes);
 
-app.use('/api', require('./routes/userRoutes')); 
-app.use('/api/projects',require('./routes/projectRoutes'));
+// ✅ Root Check
+app.get('/', (req, res) => {
+  res.send('🚀 API is running');
+});
 
-
-// Register routes
-app.use('/api/teams',require('./routes/teamRoutes'));
-
-
+// ✅ Server Listener
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🌐 Server running on http://localhost:${PORT}`));
