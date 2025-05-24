@@ -12,6 +12,8 @@ export default function HeroSectionOne() {
   };
 
   return (
+    <>
+    
     <div className="relative flex min-h-screen w-full flex-col bg-white dark:bg-black">
       <Navbar onLoginClick={onLoginClick} />
 
@@ -60,6 +62,9 @@ export default function HeroSectionOne() {
         {showAuthModal && <AuthPage onClose={() => setShowAuthModal(false)} />}
       </div>
     </div>
+
+    
+    </>
   );
 }
 

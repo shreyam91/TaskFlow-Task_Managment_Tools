@@ -36,8 +36,12 @@ export function TeamForm() {
     const fetchData = async () => {
       try {
         const [projectsRes, usersRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },

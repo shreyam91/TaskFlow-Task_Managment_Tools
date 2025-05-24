@@ -49,6 +49,8 @@ export function NavUser() {
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token");
+      console.log("Token:", token);
+      
       if (!token) {
         setLoading(false);
         setError("No token found");
@@ -56,8 +58,9 @@ export function NavUser() {
       }
 
       try {
+        console.log("API URL:", `${process.env.NEXT_PUBLIC_API_URL}/api/users/user`);
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/user`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/users/user`,
           {
             method: "GET",
             headers: {
@@ -66,7 +69,9 @@ export function NavUser() {
           }
         );
 
+        console.log("Response status:", response.status);
         const data = await response.json();
+        console.log("Response data:", data);
 
         if (response.ok) {
           setUser(data);
@@ -74,8 +79,8 @@ export function NavUser() {
           setError(data.msg || "Failed to fetch user data");
         }
       } catch (error) {
+        console.error("Error fetching user data:", error);
         setError("Error fetching user data");
-        console.error(error);
       } finally {
         setLoading(false);
       }

@@ -47,26 +47,92 @@ export function NavDocuments() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/projects`
-        )
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects")
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("No authentication token found");
+          setLoading(false);
+          return;
         }
-        const data = await response.json()
-        setItems(data)
+
+        console.log("Fetching projects from:", `${process.env.NEXT_PUBLIC_API_URL}/api/projects`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/projects`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch projects");
+        }
+
+        const data = await response.json();
+        console.log("Received projects:", data);
+        
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid data format received from server");
+        }
+
+        setItems(data);
+        setError(null);
       } catch (err) {
-        setError("Failed to load projects")
+        console.error("Error fetching projects:", err);
+        setError(err instanceof Error ? err.message : "Failed to load projects");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>{error}</div>
+  if (loading) {
+    return (
+      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center justify-center p-4">
+              <div className="animate-pulse">Loading projects...</div>
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
+    );
+  }
+
+  if (error) {
+    return (
+      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center justify-center p-4 text-red-500">
+              {error}
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center justify-center p-4 text-muted-foreground">
+              No projects found
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroup>
+    );
+  }
 
   async function handleDeleteProject(id: string) {
     const confirmed = window.confirm("Are you sure you want to delete this project?")
@@ -77,6 +143,9 @@ export function NavDocuments() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/projects/${id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       )
   
@@ -169,7 +238,7 @@ export function NavDocuments() {
     <SidebarMenuItem>
       <SidebarMenuButton className="text-sidebar-foreground/70">
         <IconDots className="text-sidebar-foreground/70" />
-        <span>More</span>
+        {/* <span>More</span> */}
       </SidebarMenuButton>
     </SidebarMenuItem>
   )}

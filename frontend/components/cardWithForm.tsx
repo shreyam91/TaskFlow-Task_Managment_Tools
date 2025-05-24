@@ -25,10 +25,35 @@ export function CardWithForm() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL
 
     try {
+      // First, check if project with same name exists
+      const checkResponse = await fetch(`${apiUrl}/api/projects`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!checkResponse.ok) {
+        throw new Error("Failed to check existing projects");
+      }
+
+      const existingProjects = await checkResponse.json();
+      const projectExists = existingProjects.some(
+        (project: { name: string }) => 
+          project.name.toLowerCase() === projectName.toLowerCase()
+      );
+
+      if (projectExists) {
+        toast.error("A project with this name already exists");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // If no duplicate found, create the project
       const response = await fetch(`${apiUrl}/api/projects`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ name: projectName }),
       })
@@ -42,7 +67,8 @@ export function CardWithForm() {
         toast.error(data.error || "Something went wrong")
       }
     } catch (error: any) {
-      toast.error("Network error: " + error.message)
+      console.error("Error:", error);
+      toast.error(error.message || "Network error occurred")
     } finally {
       setIsSubmitting(false)
     }

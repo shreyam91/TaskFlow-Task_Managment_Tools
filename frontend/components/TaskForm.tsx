@@ -31,7 +31,11 @@ export function TaskForm() {
     const fetchProjects = async () => {
       try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/projects/`) // Replace with your actual backend URL
+            `${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            })
         const data = await res.json()
         setProjects(data)
       } catch (error) {
@@ -46,12 +50,11 @@ export function TaskForm() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           })
-           // Replace with your actual backend URL
         const data = await res.json()
         setUsers(data)
       } catch (error) {
