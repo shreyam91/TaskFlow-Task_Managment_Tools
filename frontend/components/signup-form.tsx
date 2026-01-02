@@ -24,16 +24,18 @@ export default function SignupFormDemo({
     const name = `${first} ${last}`;
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ firstname: first, lastname: last, email, password }),
-        }
-      );
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ firstname: first, lastname: last, email, password }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
 
       const data = await res.json();
 

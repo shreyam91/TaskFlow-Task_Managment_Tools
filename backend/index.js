@@ -1,7 +1,8 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const connectDB = require('./config/db');
 
 // Route Imports
 const authRoutes = require('./routes/authRoutes');
@@ -13,23 +14,22 @@ const teamRoutes = require('./routes/teamRoutes');
 const app = express();
 
 // ✅ MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+connectDB();
 
 // ✅ Middleware
-app.use(cors({
-  origin: "http://localhost:3000", // You can set this to your frontend URL
+const corsOptions = {
+  origin: "http://localhost:3000",
   credentials: true,
-}));
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // ✅ API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);           // /api/users/user, /api/users/users
+app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/teams', teamRoutes);
