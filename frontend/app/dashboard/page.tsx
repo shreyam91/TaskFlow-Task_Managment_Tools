@@ -1,9 +1,7 @@
 "use client";
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
+import { AppSidebar } from "@/features/dashboard/components/app-sidebar";
+import { DataTable } from "@/features/tasks/components/data-table";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -13,8 +11,8 @@ import { Button } from "@/components/ui/button";
 
 import { CardWithForm } from "@/components/cardWithForm";
 import { useState } from "react";
-import { TaskForm } from "@/components/TaskForm";
-import { TeamForm } from "@/components/TeamForm";
+import { TaskForm } from "@/features/tasks/components/TaskForm";
+import { TeamForm } from "@/features/teams/components/TeamForm";
 
 export default function DashboardPage() {
   const [showPopup, setShowPopup] = useState(false);

@@ -1,6 +1,7 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/features/dashboard/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
