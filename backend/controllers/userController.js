@@ -1,9 +1,11 @@
-const User = require('../models/User');
+const prisma = require('../utils/prisma');
 
 // GET /api/user - Get current user
 const getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -22,9 +24,16 @@ const getUser = async (req, res) => {
 // GET /api/users - Get all users (limited fields)
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, 'username firstname lastname _id');
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        username: true
+      }
+    });
     const formattedUsers = users.map(user => ({
-      id: user._id,
+      id: user.id,
       name: `${user.firstname} ${user.lastname}`
     }));
     res.json(formattedUsers);

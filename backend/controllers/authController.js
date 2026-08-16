@@ -1,13 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const prisma = require('../utils/prisma');
 
 exports.register = async (req, res) => {
   try {
     const { firstname, lastname, email, password } = req.body;
 
     // Check for existing email
-    const userExists = await User.findOne({ email });
+    const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) return res.status(400).json({ msg: 'Email is already registered' });
 
     // Generate base username from last + first name
@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
     // Ensure username is unique (add numbers if necessary)
     let username = baseUsername;
     let counter = 1;
-    while (await User.findOne({ username })) {
+    while (await prisma.user.findUnique({ where: { username } })) {
       username = `${baseUsername}${counter}`;
       counter++;
     }
@@ -26,8 +26,9 @@ exports.register = async (req, res) => {
     const hash = await bcrypt.hash(password, salt);
 
     // Create and save user
-    const user = new User({ firstname, lastname, username, email, password: hash });
-    await user.save();
+    const user = await prisma.user.create({
+      data: { firstname, lastname, username, email, password: hash }
+    });
 
     res.status(201).json({ msg: 'User registered successfully' });
   } catch (err) {
@@ -40,17 +41,17 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
 
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user.id, name: `${user.firstname} ${user.lastname}`, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

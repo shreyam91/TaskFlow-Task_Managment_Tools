@@ -2,7 +2,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./config/db');
 
 // Route Imports
 const authRoutes = require('./routes/authRoutes');
@@ -10,11 +9,11 @@ const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const teamRoutes = require('./routes/teamRoutes');
+const parseRoutes = require('./routes/parseRoutes');
 
 const app = express();
 
-// ✅ MongoDB Connection
-connectDB();
+// Prisma handles connection inherently when instantiated in controllers/services.
 
 // ✅ Middleware
 const corsOptions = {
@@ -33,6 +32,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/parse', parseRoutes);
 
 // ✅ Root Check
 app.get('/', (req, res) => {

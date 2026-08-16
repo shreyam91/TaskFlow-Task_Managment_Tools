@@ -1,7 +1,7 @@
-import Team from "../models/Team.js";
+const prisma = require('../utils/prisma');
 
 // Create a new team
-export const createTeam = async (req, res) => {
+exports.createTeam = async (req, res) => {
   try {
     const { name, description, project, users } = req.body;
 
@@ -9,8 +9,16 @@ export const createTeam = async (req, res) => {
       return res.status(400).json({ error: "Team name is required" });
     }
 
-    const team = new Team({ name, description, project, users });
-    await team.save();
+    const team = await prisma.team.create({
+      data: {
+        name,
+        description,
+        projectId: project || null,
+        users: {
+          connect: (users || []).map(userId => ({ id: userId }))
+        }
+      }
+    });
 
     res.status(201).json({ message: "Team created successfully", team });
   } catch (error) {
@@ -20,18 +28,21 @@ export const createTeam = async (req, res) => {
 };
 
 // Get all teams
-export const getAllTeams = async (req, res) => {
+exports.getAllTeams = async (req, res) => {
   try {
-    const teams = await Team.find()
-      .populate("project", "name")
-      .populate("users", "name email");
+    const teams = await prisma.team.findMany({
+      include: {
+        project: { select: { name: true } },
+        users: { select: { firstname: true, lastname: true, email: true } }
+      }
+    });
 
     const mappedTeams = teams.map((team) => ({
-      id: team._id.toString(),
+      id: team.id,
       name: team.name,
       description: team.description,
       project: team.project,
-      users: team.users,
+      users: team.users.map(u => ({ name: `${u.firstname} ${u.lastname}`, email: u.email })),
       createdAt: team.createdAt,
       updatedAt: team.updatedAt,
     }));
@@ -44,16 +55,17 @@ export const getAllTeams = async (req, res) => {
 };
 
 // Delete a team
-export const deleteTeam = async (req, res) => {
+exports.deleteTeam = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedTeam = await Team.findByIdAndDelete(id);
+    const deletedTeam = await prisma.team.findUnique({ where: { id } });
 
     if (!deletedTeam) {
       return res.status(404).json({ error: "Team not found" });
     }
 
+    await prisma.team.delete({ where: { id } });
     res.json({ message: "Team deleted successfully" });
   } catch (error) {
     console.error("Error deleting team:", error);
@@ -62,31 +74,43 @@ export const deleteTeam = async (req, res) => {
 };
 
 // Update a team by ID
-export const updateTeam = async (req, res) => {
+exports.updateTeam = async (req, res) => {
   const { id } = req.params;
   const { name, description, project, users } = req.body;
 
   try {
-    const updatedTeam = await Team.findByIdAndUpdate(
-      id,
-      { name, description, project, users },
-      { new: true, runValidators: true }
-    )
-      .populate("project", "name")
-      .populate("users", "name email");
-
-    if (!updatedTeam) {
+    const existingTeam = await prisma.team.findUnique({ where: { id } });
+    if (!existingTeam) {
       return res.status(404).json({ error: "Team not found" });
     }
+
+    const dataToUpdate = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (description !== undefined) dataToUpdate.description = description;
+    if (project !== undefined) dataToUpdate.projectId = project;
+    if (users !== undefined) {
+      dataToUpdate.users = {
+        set: users.map(userId => ({ id: userId }))
+      };
+    }
+
+    const updatedTeam = await prisma.team.update({
+      where: { id },
+      data: dataToUpdate,
+      include: {
+        project: { select: { name: true } },
+        users: { select: { firstname: true, lastname: true, email: true } }
+      }
+    });
 
     res.json({
       message: "Team updated successfully",
       team: {
-        id: updatedTeam._id.toString(),
+        id: updatedTeam.id,
         name: updatedTeam.name,
         description: updatedTeam.description,
         project: updatedTeam.project,
-        users: updatedTeam.users,
+        users: updatedTeam.users.map(u => ({ name: `${u.firstname} ${u.lastname}`, email: u.email })),
         createdAt: updatedTeam.createdAt,
         updatedAt: updatedTeam.updatedAt,
       },
