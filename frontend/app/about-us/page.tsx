@@ -11,7 +11,7 @@ export default function AboutUsPage() {
               About TaskManager
             </h1>
             <p className="mt-4 text-xl text-slate-500 dark:text-slate-400">
-              We're on a mission to make work feel less like work.
+              We&apos;re on a mission to make work feel less like work.
             </p>
           </div>
           

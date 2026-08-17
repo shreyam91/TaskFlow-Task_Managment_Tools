@@ -8,6 +8,7 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
+import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -186,14 +187,18 @@ export function NavUser() {
 
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/account" className="flex items-center w-full cursor-pointer">
+                  <IconUserCircle className="mr-2 h-4 w-4" />
+                  Account
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications 
-                </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/notifications" className="flex items-center w-full cursor-pointer">
+                  <IconNotification className="mr-2 h-4 w-4" />
+                  Notifications 
+                </Link>
+              </DropdownMenuItem>
                 {showCard && (
         // <div style={{
         //   border: '1px solid #ccc',

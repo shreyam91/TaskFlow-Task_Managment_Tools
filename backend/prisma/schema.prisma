@@ -3,33 +3,56 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        String   @id @default(uuid())
-  firstname String
-  lastname  String
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      String   @default("employee") // "employee", "manager", "admin"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  firstname    String
+  lastname     String
+  username     String   @unique
+  email        String   @unique
+  password     String
+  role         String   @default("employee") // Legacy role
+  primary_role String   @default("DEVELOPER") // "DEVELOPER" or "PROJECT_OWNER"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  createdTasks  Task[] @relation("TaskCreatedBy")
-  assignedTasks Task[] @relation("TaskAssignedTo")
-  teams         Team[] @relation("TeamUsers")
+  createdTasks      Task[]            @relation("TaskCreatedBy")
+  assignedTasks     Task[]            @relation("TaskAssignedTo")
+  ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
+  workspaceMembers  WorkspaceMember[]
 }
 
-model Project {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  visibility  String   @default("PRIVATE") // "PRIVATE" or "DISCOVERABLE"
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tasks Task[]
-  teams Team[]
+  ownerId     String
+  owner       User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  
+  tasks       Task[]
+  members     WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspaceId String
+  userId      String
+  role        String    @default("VIEWER") // "OWNER", "DEVELOPER", "VIEWER"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
 }
 
 model Task {
@@ -48,19 +71,6 @@ model Task {
   assignedToId String?
   assignedTo   User?   @relation("TaskAssignedTo", fields: [assignedToId], references: [id])
 
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id])
-}
-
-model Team {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id])
-
-  users User[] @relation("TeamUsers")
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

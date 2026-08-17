@@ -13,6 +13,7 @@ export default function HeroSectionOne() {
 
   const onLoginClick = () => {
     // Development bypass
+    localStorage.setItem("token", "dev-bypass-token");
     router.push("/dashboard");
     // setShowAuthModal(true);
   };

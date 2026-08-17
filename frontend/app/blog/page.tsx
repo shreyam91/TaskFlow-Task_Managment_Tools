@@ -1,6 +1,5 @@
 import React from 'react';
 import CtaAndFooter from '@/features/landing/components/cta-footer';
-import Link from 'next/link';
 
 export default function BlogPage() {
   return (

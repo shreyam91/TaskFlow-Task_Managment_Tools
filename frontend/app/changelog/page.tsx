@@ -31,7 +31,7 @@ export default function ChangelogPage() {
               <span className="inline-block px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-semibold mb-4">v2.0.5 - July 2026</span>
               <h2 className="text-2xl font-bold mb-3 dark:text-white">Dark Mode Enhancements</h2>
               <p className="text-slate-600 dark:text-slate-300 mb-4">
-                We've tweaked the contrast and colors in dark mode to reduce eye strain and improve readability during late-night productivity sessions.
+                We&apos;ve tweaked the contrast and colors in dark mode to reduce eye strain and improve readability during late-night productivity sessions.
               </p>
             </div>
             <div className="border-l-2 border-slate-200 dark:border-slate-800 pl-6 pb-6">

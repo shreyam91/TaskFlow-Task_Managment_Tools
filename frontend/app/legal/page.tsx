@@ -24,7 +24,7 @@ export default function LegalPage() {
               
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Trademarks</h2>
               <p>
-                TaskManager and other marks indicated on our site are trademarks of TaskManager Inc. TaskManager's trademarks and trade dress may not be used in connection with any product or service that is not TaskManager's, in any manner that is likely to cause confusion among customers.
+                TaskManager and other marks indicated on our site are trademarks of TaskManager Inc. TaskManager&apos;s trademarks and trade dress may not be used in connection with any product or service that is not TaskManager&apos;s, in any manner that is likely to cause confusion among customers.
               </p>
               
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Compliance</h2>

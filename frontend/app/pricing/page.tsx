@@ -11,7 +11,7 @@ export default function PricingPage() {
               Simple, Transparent Pricing
             </h1>
             <p className="mt-4 text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-              Choose the plan that fits your team's needs. Upgrade, downgrade, or cancel anytime.
+              Choose the plan that fits your team&apos;s needs. Upgrade, downgrade, or cancel anytime.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">

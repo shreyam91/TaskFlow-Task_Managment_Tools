@@ -11,7 +11,7 @@ export default function CareersPage() {
               Join Our Team
             </h1>
             <p className="mt-4 text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-              Help us build the future of work. We're a remote-first company looking for passionate builders.
+              Help us build the future of work. We&apos;re a remote-first company looking for passionate builders.
             </p>
           </div>
           

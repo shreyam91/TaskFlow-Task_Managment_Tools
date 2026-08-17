@@ -76,32 +76,35 @@ export function CardWithForm() {
   }
 
   return (
-    <Card className="w-[350px]">
-      <CardHeader>
-        <CardTitle>Create project</CardTitle>
-        <CardDescription>Deploy your new project in one-click.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                placeholder="Name of your project"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <CardFooter className="flex justify-between mt-4 p-0">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Deploying..." : "Deploy"}
-            </Button>
-          </CardFooter>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="w-full">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+          Create Project
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Initialize a new workspace for your team.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-medium">Project Name</Label>
+          <Input
+            id="name"
+            placeholder="e.g. Q4 Marketing Campaign"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            required
+            className="h-12 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="w-full h-12 text-md rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold transition-all hover:shadow-lg hover:shadow-indigo-500/25"
+        >
+          {isSubmitting ? "Creating Project..." : "Create Project"}
+        </Button>
+      </form>
+    </div>
   )
 }
